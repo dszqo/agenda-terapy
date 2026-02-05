@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agenda Terapia</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Cabeçalho -->
+        <header class="header">
+            <h1>📋 Agenda Terapia</h1>
+            <p class="subtitle">Gerenciamento de Pacientes e Sessões</p>
+            <button class="btn-add-patient" onclick="openAddPatientModal()">+ Adicionar Paciente</button>
+        </header>
+
+        <!-- Estatísticas -->
+        <section class="stats">
+            <div class="stat-card">
+                <div class="stat-icon">👥</div>
+                <div class="stat-content">
+                    <div class="stat-value" id="totalPatients">26</div>
+                    <div class="stat-label">Total de Pacientes</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">✅</div>
+                <div class="stat-content">
+                    <div class="stat-value" id="activePatients">2</div>
+                    <div class="stat-label">Pagos</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">⚠️</div>
+                <div class="stat-content">
+                    <div class="stat-value" id="pendingSessions">2</div>
+                    <div class="stat-label">Em dia</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">📅</div>
+                <div class="stat-content">
+                    <div class="stat-value" id="sessionsToday">0</div>
+                    <div class="stat-label">Hoje</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Filtro de dias -->
+        <section class="day-filter">
+            <button class="day-btn active" data-day="all">Todos <span class="count">26</span></button>
+            <button class="day-btn" data-day="monday">Seg <span class="count" id="count-monday">5</span></button>
+            <button class="day-btn" data-day="tuesday">Ter <span class="count" id="count-tuesday">4</span></button>
+            <button class="day-btn" data-day="wednesday">Qua <span class="count" id="count-wednesday">5</span></button>
+            <button class="day-btn" data-day="thursday">Qui <span class="count" id="count-thursday">6</span></button>
+            <button class="day-btn" data-day="friday">Sex <span class="count" id="count-friday">6</span></button>
+            <button class="day-btn" data-day="saturday">Sáb <span class="count" id="count-saturday">0</span></button>
+            <button class="day-btn" data-day="sunday">Dom <span class="count" id="count-sunday">0</span></button>
+        </section>
+
+        <!-- Navegação por tabs -->
+        <section class="tabs">
+            <button class="tab-btn active" data-tab="schedule">📅 Grade de Horários</button>
+            <button class="tab-btn" data-tab="list">📋 Lista de Pacientes</button>
+            <button class="tab-btn" data-tab="pending">💳 Sessões Pendentes</button>
+        </section>
+
+        <!-- Conteúdo -->
+        <section class="content">
+            <!-- Grade de Horários -->
+            <div id="schedule-view" class="view active">
+                <div class="schedule-container">
+                    <div id="scheduleGrid"></div>
+                </div>
+            </div>
+
+            <!-- Lista de Pacientes -->
+            <div id="list-view" class="view">
+                <div id="patientList"></div>
+            </div>
+
+            <!-- Sessões Pendentes -->
+            <div id="pending-view" class="view">
+                <div class="pending-stats">
+                    <div class="pending-card">
+                        <div class="pending-icon">⚠️</div>
+                        <div class="pending-value" id="pendingCount">2</div>
+                        <div class="pending-label">Sessões pendentes</div>
+                    </div>
+                    <div class="pending-card">
+                        <div class="pending-icon">🔴</div>
+                        <div class="pending-value" id="owingCount">10</div>
+                        <div class="pending-label">Pacientes devendo</div>
+                    </div>
+                </div>
+                <div class="info-box">
+                    <strong>Controle de Sessões Pendentes</strong>
+                    <p>Use os botões + e - para controlar as sessões de cada paciente. Valores positivos indicam crédito, valores negativos indicam dívida.</p>
+                </div>
+                <div id="pendingList"></div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Modal Adicionar/Editar Paciente -->
+    <div id="patientModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">Adicionar Paciente</h2>
+                <button class="modal-close" onclick="closePatientModal()">&times;</button>
+            </div>
+            <form id="patientForm" onsubmit="savePatient(event)">
+                <div class="form-group">
+                    <label for="patientName">Nome do Paciente *</label>
+                    <input type="text" id="patientName" required placeholder="Ex: Maria Silva">
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="patientDay">Dia da Semana *</label>
+                        <select id="patientDay" required>
+                            <option value="">Selecione...</option>
+                            <option value="monday">Segunda-feira</option>
+                            <option value="tuesday">Terça-feira</option>
+                            <option value="wednesday">Quarta-feira</option>
+                            <option value="thursday">Quinta-feira</option>
+                            <option value="friday">Sexta-feira</option>
+                            <option value="saturday">Sábado</option>
+                            <option value="sunday">Domingo</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="patientTime">Horário *</label>
+                        <input type="time" id="patientTime" required>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="patientBalance">Saldo de Sessões</label>
+                    <input type="number" id="patientBalance" value="0" placeholder="0">
+                    <small>Positivo = crédito, Negativo = dívida, Zero = pendente</small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="patientNotes">Observações</label>
+                    <textarea id="patientNotes" rows="3" placeholder="Ex: precisa pagar, dar garrinha de presente..."></textarea>
+                </div>
+                
+                <input type="hidden" id="patientId">
+                
+                <div class="modal-actions">
+                    <button type="button" class="btn-secondary" onclick="closePatientModal()">Cancelar</button>
+                    <button type="submit" class="btn-primary">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    
+    <!-- Scripts do aplicativo -->
+    <script src="firebase-config.js"></script>
+    <script src="data.js"></script>
+    <script src="storage.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

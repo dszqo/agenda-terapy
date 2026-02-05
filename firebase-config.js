@@ -14,7 +14,7 @@ const firebaseConfig = {
 let firebaseConfigured = false;
 
 // Inicializar Firebase
-function initializeFirebase() {
+function initializeFirebase( ) {
     try {
         firebase.initializeApp(firebaseConfig);
         firebaseConfigured = true;

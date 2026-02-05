@@ -1,5 +1,5 @@
 // Configuração do Firebase
-// IMPORTANTE: Substitua estas credenciais pelas suas próprias após criar o projeto no Firebase
+// Credenciais configuradas para sincronização entre dispositivos
 const firebaseConfig = {
     apiKey: "AIzaSyB8TEymYQ5VsPBy7HE4ebRHNQ8ZsENvW20",
     authDomain: "agenda-terapy-d888d.firebaseapp.com",
@@ -13,25 +13,16 @@ const firebaseConfig = {
 // Variável global para indicar se o Firebase está configurado
 let firebaseConfigured = false;
 
-// Verificar se as credenciais foram substituídas
-function isFirebaseConfigured() {
-    return firebaseConfig.apiKey !== "AIzaSyB8TEymYQ5VsPBy7HE4ebRHNQ8ZsENvW20";
-}
-
-// Inicializar Firebase apenas se configurado
+// Inicializar Firebase
 function initializeFirebase() {
-    if (isFirebaseConfigured()) {
-        try {
-            firebase.initializeApp(firebaseConfig);
-            firebaseConfigured = true;
-            console.log('Firebase inicializado com sucesso!');
-            return true;
-        } catch (error) {
-            console.error('Erro ao inicializar Firebase:', error);
-            return false;
-        }
-    } else {
-        console.log('Firebase não configurado. Usando LocalStorage.');
+    try {
+        firebase.initializeApp(firebaseConfig);
+        firebaseConfigured = true;
+        console.log('✅ Firebase inicializado com sucesso! Dados sincronizando...');
+        return true;
+    } catch (error) {
+        console.error('❌ Erro ao inicializar Firebase:', error);
+        console.log('⚠️ Usando LocalStorage como fallback.');
         return false;
     }
 }

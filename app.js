@@ -176,6 +176,13 @@ function renderDesktopSchedule(container, days) {
                 font-size: 10px;
                 line-height: 18px;
             }
+
+            .free-slot-time {
+                opacity: 0.38;
+                font-size: 9px;
+                font-weight: 400;
+                white-space: nowrap;
+            }
         `;
         document.head.appendChild(style);
     }
@@ -232,7 +239,7 @@ function renderDesktopSchedule(container, days) {
                 html += '<div class="schedule-cell blocked">🔒 Ocupado</div>';
             } else {
                 // Horário livre
-                html += '<div class="schedule-cell free">✓</div>';
+                html += `<div class="schedule-cell free"><span class="free-slot-time">${time}</span></div>`;
             }
         });
         

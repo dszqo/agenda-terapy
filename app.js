@@ -108,8 +108,8 @@ function isTimeSlotBlocked(day, time) {
     const [hours, minutes] = time.split(':').map(Number);
     const slotMinutes = (hours * 60) + minutes;
     
-    // Exemplo: sessão às 14:30 bloqueia 14:35 até 15:25.
-    // Às 15:30, a sessão terminou e o horário fica livre novamente.
+    // Exemplo: sessão às 17:15 bloqueia 17:20 até 18:15.
+    // Como os horários avançam de 5 em 5 minutos, o próximo disponível será 18:20.
     return patientsData.some(p => {
         if (p.day !== day) return false;
         
@@ -117,7 +117,7 @@ function isTimeSlotBlocked(day, time) {
         const patientStartMinutes = (patientHours * 60) + patientMinutes;
         const difference = slotMinutes - patientStartMinutes;
         
-        return difference > 0 && difference < 60;
+        return difference > 0 && difference <= 60;
     });
 }
 
@@ -154,6 +154,21 @@ function renderDesktopSchedule(container, days) {
 
             .schedule-row.compact-free-row .schedule-time,
             .schedule-row.compact-free-row .schedule-cell.free {
+                min-height: 18px !important;
+                height: 18px !important;
+                padding-top: 0 !important;
+                padding-bottom: 0 !important;
+                font-size: 10px;
+                line-height: 18px;
+            }
+
+            .schedule-row:has(.schedule-cell.blocked):not(:has(.schedule-cell.filled)) {
+                min-height: 18px !important;
+                height: 18px !important;
+            }
+
+            .schedule-row:has(.schedule-cell.blocked):not(:has(.schedule-cell.filled)) .schedule-time,
+            .schedule-row:has(.schedule-cell.blocked):not(:has(.schedule-cell.filled)) .schedule-cell {
                 min-height: 18px !important;
                 height: 18px !important;
                 padding-top: 0 !important;

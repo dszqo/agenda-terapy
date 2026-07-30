@@ -93,49 +93,32 @@ function renderContent() {
     }
 }
 
-// Calcular horário seguinte (adiciona 30 minutos)
+// Calcular horário final da sessão (adiciona 60 minutos)
 function getNextTimeSlot(time) {
     const [hours, minutes] = time.split(':').map(Number);
-    let nextMinutes = minutes + 30;
-    let nextHours = hours;
-    
-    if (nextMinutes >= 60) {
-        nextMinutes = 0;
-        nextHours += 1;
-    }
+    const totalMinutes = (hours * 60) + minutes + 60;
+    const nextHours = Math.floor(totalMinutes / 60) % 24;
+    const nextMinutes = totalMinutes % 60;
     
     return `${nextHours.toString().padStart(2, '0')}:${nextMinutes.toString().padStart(2, '0')}`;
 }
 
-// Verificar se horário está bloqueado (hora seguinte de uma sessão)
+// Verificar se horário está bloqueado (sessão de 60 minutos em andamento)
 function isTimeSlotBlocked(day, time) {
-    // Sessão de 60min ocupa 2 slots (30min + 30min)
-    // Verifica se existe paciente 30min antes OU 60min antes
     const [hours, minutes] = time.split(':').map(Number);
+    const slotMinutes = (hours * 60) + minutes;
     
-    // Verificar 30 minutos antes
-    let prev30Minutes = minutes - 30;
-    let prev30Hours = hours;
-    if (prev30Minutes < 0) {
-        prev30Minutes = 30;
-        prev30Hours -= 1;
-    }
-    const prev30Time = `${prev30Hours.toString().padStart(2, '0')}:${prev30Minutes.toString().padStart(2, '0')}`;
-    
-    // Verificar 60 minutos antes
-    let prev60Minutes = minutes - 60;
-    let prev60Hours = hours;
-    if (prev60Minutes < 0) {
-        prev60Minutes = minutes + 60; // Ajustar para hora anterior
-        prev60Hours -= 1;
-        if (prev60Minutes >= 60) {
-            prev60Minutes -= 60;
-        }
-    }
-    const prev60Time = `${prev60Hours.toString().padStart(2, '0')}:${prev60Minutes.toString().padStart(2, '0')}`;
-    
-    // Retorna true se houver paciente em qualquer um dos horários
-    return patientsData.some(p => p.day === day && (p.time === prev30Time || p.time === prev60Time));
+    // Exemplo: sessão às 14:30 bloqueia 14:35 até 15:25.
+    // Às 15:30, a sessão terminou e o horário fica livre novamente.
+    return patientsData.some(p => {
+        if (p.day !== day) return false;
+        
+        const [patientHours, patientMinutes] = p.time.split(':').map(Number);
+        const patientStartMinutes = (patientHours * 60) + patientMinutes;
+        const difference = slotMinutes - patientStartMinutes;
+        
+        return difference > 0 && difference < 60;
+    });
 }
 
 // Renderizar grade de horários (otimizada para mobile)
@@ -159,11 +142,35 @@ function renderScheduleGrid() {
 
 // Renderizar grade para desktop
 function renderDesktopSchedule(container, days) {
-    // Gerar slots de horário (07:00 - 22:00)
+    // Compactar somente as linhas em que todos os horários exibidos estão livres
+    if (!document.getElementById('compactScheduleStyles')) {
+        const style = document.createElement('style');
+        style.id = 'compactScheduleStyles';
+        style.textContent = `
+            .schedule-row.compact-free-row {
+                min-height: 18px !important;
+                height: 18px !important;
+            }
+
+            .schedule-row.compact-free-row .schedule-time,
+            .schedule-row.compact-free-row .schedule-cell.free {
+                min-height: 18px !important;
+                height: 18px !important;
+                padding-top: 0 !important;
+                padding-bottom: 0 !important;
+                font-size: 10px;
+                line-height: 18px;
+            }
+        `;
+        document.head.appendChild(style);
+    }
+
+    // Gerar slots de horário (07:00 - 22:00) em intervalos de 5 minutos
     const timeSlots = [];
     for (let hour = 7; hour <= 21; hour++) {
-        timeSlots.push(`${hour.toString().padStart(2, '0')}:00`);
-        timeSlots.push(`${hour.toString().padStart(2, '0')}:30`);
+        for (let minute = 0; minute < 60; minute += 5) {
+            timeSlots.push(`${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`);
+        }
     }
     
     let html = '<div class="schedule-grid">';
@@ -179,7 +186,12 @@ function renderDesktopSchedule(container, days) {
     // Linhas de horário
     html += '<div class="schedule-body">';
     timeSlots.forEach(time => {
-        html += '<div class="schedule-row">';
+        const isCompletelyFree = days.every(day => {
+            const patient = patientsData.find(p => p.day === day && p.time === time);
+            return !patient && !isTimeSlotBlocked(day, time);
+        });
+
+        html += `<div class="schedule-row${isCompletelyFree ? ' compact-free-row' : ''}">`;
         html += `<div class="schedule-time">${time}</div>`;
         
         days.forEach(day => {

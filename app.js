@@ -159,11 +159,12 @@ function renderScheduleGrid() {
 
 // Renderizar grade para desktop
 function renderDesktopSchedule(container, days) {
-    // Gerar slots de horário (07:00 - 22:00)
+    // Gerar slots de horário (07:00 - 22:00) em intervalos de 5 minutos
     const timeSlots = [];
     for (let hour = 7; hour <= 21; hour++) {
-        timeSlots.push(`${hour.toString().padStart(2, '0')}:00`);
-        timeSlots.push(`${hour.toString().padStart(2, '0')}:30`);
+        for (let minute = 0; minute < 60; minute += 5) {
+            timeSlots.push(`${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`);
+        }
     }
     
     let html = '<div class="schedule-grid">';

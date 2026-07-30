@@ -178,8 +178,9 @@ function renderDesktopSchedule(container, days) {
             }
 
             .free-slot-time {
-                opacity: 0.38;
-                font-size: 9px;
+                opacity: 1;
+                color: #000;
+                font-size: 10px;
                 font-weight: 400;
                 white-space: nowrap;
             }
